@@ -10,6 +10,7 @@ import { CoinSymbol } from '../../enums/symbols';
 @QueryHandler(GetMyBalanceCommand)
 export class GetMyBalanceHandler implements IQueryHandler<GetMyBalanceCommand> {
   private web3Instance: Web3;
+  private provider: EtherscanProvider;
   constructor(
     private tokensRepository: TokensRepository,
     private configService: ConfigService,
@@ -18,6 +19,10 @@ export class GetMyBalanceHandler implements IQueryHandler<GetMyBalanceCommand> {
       new Web3.providers.HttpProvider(
         this.configService.get<string>('WEB3_PROVIDER'),
       ),
+    );
+    this.provider = new EtherscanProvider(
+      'homestead',
+      this.configService.get<string>('API_KEY'),
     );
   }
   async execute(query: GetMyBalanceCommand): Promise<any> {
@@ -29,32 +34,21 @@ export class GetMyBalanceHandler implements IQueryHandler<GetMyBalanceCommand> {
         balanceInWei,
         'ether',
       );
-
       const getTokens = await this.tokensRepository.getTokensFromChain('bsc');
-      return mappedBalance(
-        getTokens,
-        balanceInBnb,
-        getTokens.find(
-          (value) => value.symbol.toUpperCase() === CoinSymbol.BNB,
-        ),
+      const price = getTokens.find(
+        (value) => value.symbol.toUpperCase() === CoinSymbol.BNB,
       );
+      return mappedBalance(getTokens, balanceInBnb, price.usd);
     } else {
-      const provider = new EtherscanProvider(
-        'homestead',
-        this.configService.get<string>('API_KEY'),
+      const accountBalance = await this.provider.getBalance(
+        query.input.address,
       );
-      const test = await provider.getBalance(query.input.address);
-      const balanceInEther = ethers.formatEther(test.toString());
-
+      const balanceInEther = ethers.formatEther(accountBalance.toString());
+      const ethPrice = await this.provider.getEtherPrice();
+      console.log(ethPrice);
       const getTokens = await this.tokensRepository.getTokensFromChain('eth');
 
-      return mappedBalance(
-        getTokens,
-        balanceInEther,
-        getTokens.find(
-          (value) => value.symbol.toUpperCase() === CoinSymbol.ETH,
-        ),
-      );
+      return mappedBalance(getTokens, balanceInEther, ethPrice);
     }
   }
 }

@@ -25,7 +25,7 @@ export class GetMyBalanceHandler implements IQueryHandler<GetMyBalanceCommand> {
       this.configService.get<string>('API_KEY'),
     );
   }
-  async execute(query: GetMyBalanceCommand): Promise<any> {
+  async execute(query: GetMyBalanceCommand): Promise<string> {
     if (query.input.network === 'WEB3') {
       const balanceInWei = await this.web3Instance.eth.getBalance(
         query.input.address,

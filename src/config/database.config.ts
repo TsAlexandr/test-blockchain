@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { DataSourceOptions } from 'typeorm';
+import { TokensEntity } from '../modules/balance/entities/tokens.entity';
 
 export const databaseConfig = (
   configService: ConfigService,
@@ -10,6 +11,6 @@ export const databaseConfig = (
   username: configService.getOrThrow('DB_USER'),
   password: configService.getOrThrow('DB_PASSWORD'),
   database: configService.getOrThrow('DB_NAME'),
-  entities: ['dist/modules/**/entities/*.entity.js'],
+  entities: [TokensEntity],
   synchronize: true,
 });

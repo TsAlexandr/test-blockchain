@@ -4,6 +4,8 @@ import { TokensRepository } from '../../repository/tokens-repository';
 import Web3 from 'web3';
 import { ConfigService } from '@nestjs/config';
 import { ethers, EtherscanProvider } from 'ethers';
+import { mappedBalance } from '../../../../common/helpers/mapped-balance';
+import { CoinSymbol } from '../../enums/symbols';
 
 @QueryHandler(GetMyBalanceCommand)
 export class GetMyBalanceHandler implements IQueryHandler<GetMyBalanceCommand> {
@@ -27,7 +29,15 @@ export class GetMyBalanceHandler implements IQueryHandler<GetMyBalanceCommand> {
         balanceInWei,
         'ether',
       );
-      return { bnb: balanceInBnb };
+
+      const getTokens = await this.tokensRepository.getTokensFromChain('bsc');
+      return mappedBalance(
+        getTokens,
+        balanceInBnb,
+        getTokens.find(
+          (value) => value.symbol.toUpperCase() === CoinSymbol.BNB,
+        ),
+      );
     } else {
       const provider = new EtherscanProvider(
         'homestead',
@@ -36,7 +46,15 @@ export class GetMyBalanceHandler implements IQueryHandler<GetMyBalanceCommand> {
       const test = await provider.getBalance(query.input.address);
       const balanceInEther = ethers.formatEther(test.toString());
 
-      return { eth: balanceInEther };
+      const getTokens = await this.tokensRepository.getTokensFromChain('eth');
+
+      return mappedBalance(
+        getTokens,
+        balanceInEther,
+        getTokens.find(
+          (value) => value.symbol.toUpperCase() === CoinSymbol.ETH,
+        ),
+      );
     }
   }
 }

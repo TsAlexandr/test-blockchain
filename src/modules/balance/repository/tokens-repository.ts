@@ -9,4 +9,8 @@ export class TokensRepository {
     @InjectRepository(TokensEntity)
     private readonly tokensRepository: Repository<TokensEntity>,
   ) {}
+
+  async getTokensFromChain(chain: string): Promise<TokensEntity[]> {
+    return this.tokensRepository.find({ where: { chain: chain } });
+  }
 }

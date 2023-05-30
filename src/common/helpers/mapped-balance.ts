@@ -13,8 +13,7 @@ export const mappedBalance = (tokens, balance, currentPrice) => {
   return tokens.reduce(function (result, item) {
     const returningValue = (balance * currentPrice) / item.usd;
     BigNumber.config({ DECIMAL_PLACES: item.decimals });
-    const bigNumber = new BigNumber(returningValue);
-    result[item.symbol] = bigNumber;
+    result[item.symbol] = new BigNumber(returningValue);
     return result;
   }, {});
 };

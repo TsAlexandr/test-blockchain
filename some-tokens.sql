@@ -1,3 +1,18 @@
+drop table if exists public.tokens
+
+CREATE TABLE public.tokens (
+	id uuid NOT NULL DEFAULT uuid_generate_v4(),
+	address varchar NOT NULL,
+	decimals int4 NOT NULL,
+	symbol varchar NOT NULL,
+	"chain" varchar NOT NULL,
+	"chainId" int4 NOT NULL,
+	usd varchar NOT NULL,
+	CONSTRAINT "PK_3001e89ada36263dabf1fb6210a" PRIMARY KEY (id),
+	CONSTRAINT "UQ_8887c0fb937bc0e9dc36cb62f35" null,
+	CONSTRAINT "UQ_daaf610565c9d7d4474420fc34d" UNIQUE (symbol)
+);
+
 insert into public.tokens (address, decimals, symbol, chain, "chainId", usd)
 values 
 (

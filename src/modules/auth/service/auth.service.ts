@@ -31,10 +31,10 @@ export class AuthService {
 
   async signIn(body: AuthCommand): Promise<JwtResponseInterface> {
     const user = await this.usersRepository.getUserByAddress(body.address);
-    if (!user) {
+    if (!user || !user.passwordMatches(body.password)) {
       throw new HttpException(
         ServiceError.USER_NOT_FOUND,
-        HttpStatusEnum.NOT_FOUND,
+        HttpStatusEnum.BAD_REQUEST,
       );
     }
     return this._generateTokens(body.address);

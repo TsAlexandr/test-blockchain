@@ -7,11 +7,13 @@ import { UsersRepository } from '../../users/repository/users.repository';
 import { ServiceError } from '../../shared/exceptions/errors.enum';
 import { HttpStatusEnum } from '../../shared/exceptions/http-status.enum';
 import { JwtPayloadRefreshInterface } from '../interfaces/jwt-payload.interface';
+import { AuthConfig } from '../config/auth.config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
+    private authConfig: AuthConfig,
     private configService: ConfigService,
     private usersRepository: UsersRepository,
   ) {}
@@ -39,9 +41,10 @@ export class AuthService {
   }
 
   async refresh(cookie: string): Promise<JwtResponseInterface> {
-    const secret = this.configService.get('JWT_SECRET_KEY');
     const payload: JwtPayloadRefreshInterface =
-      await this.jwtService.verifyAsync(cookie, secret);
+      await this.jwtService.verifyAsync(cookie, {
+        secret: this.authConfig.jwt.refresh.secret,
+      });
     if (!payload) {
       throw new HttpException(
         ServiceError.INVALID_REFRESH_TOKEN,
@@ -52,15 +55,14 @@ export class AuthService {
   }
 
   private _generateTokens(payload: string): JwtResponseInterface {
-    const secret = this.configService.get('JWT_SECRET_KEY');
-    const accessToken = this.jwtService.sign(payload, {
-      expiresIn: '10m',
-      secret: secret,
-    });
-    const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: '1d',
-      secret: secret,
-    });
+    const accessToken = this.jwtService.sign(
+      payload,
+      this.authConfig.jwt.access,
+    );
+    const refreshToken = this.jwtService.sign(
+      payload,
+      this.authConfig.jwt.refresh,
+    );
 
     return { accessToken, refreshToken };
   }
